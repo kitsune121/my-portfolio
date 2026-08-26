@@ -1,3 +1,12 @@
 [build]
   command = "npm run build"
-  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Bundle JSON seed files into serverless functions (portfolio.db is created at runtime).
+[functions]
+  included_files = ["data/*.json"]
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

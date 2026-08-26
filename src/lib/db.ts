@@ -2,8 +2,28 @@ import fs from "fs";
 import path from "path";
 import Database from "better-sqlite3";
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const DB_PATH = path.join(DATA_DIR, "portfolio.db");
+/** JSON seed files shipped with the deployment (read-only on Netlify). */
+const SEED_DATA_DIR = path.join(process.cwd(), "data");
+
+function isServerlessRuntime() {
+  return Boolean(
+    process.env.NETLIFY ||
+      process.env.AWS_LAMBDA_FUNCTION_NAME ||
+      process.env.LAMBDA_TASK_ROOT
+  );
+}
+
+/** Writable DB directory — local `data/`, or `/tmp` on Netlify/serverless. */
+function getRuntimeDataDir() {
+  if (isServerlessRuntime()) {
+    return path.join("/tmp", "portfolio-data");
+  }
+  return SEED_DATA_DIR;
+}
+
+function getDbPath() {
+  return path.join(getRuntimeDataDir(), "portfolio.db");
+}
 
 declare global {
   // eslint-disable-next-line no-var
@@ -83,7 +103,7 @@ function createSchema(db: Database.Database) {
 }
 
 function readJsonFile<T>(file: string, fallback: T): T {
-  const full = path.join(DATA_DIR, file);
+  const full = path.join(SEED_DATA_DIR, file);
   if (!fs.existsSync(full)) return fallback;
   try {
     return JSON.parse(fs.readFileSync(full, "utf-8")) as T;
@@ -254,9 +274,19 @@ function migrateFromJson(db: Database.Database) {
 export function getDb() {
   if (global.__portfolioDb) return global.__portfolioDb;
 
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  const db = new Database(DB_PATH);
-  db.pragma("journal_mode = WAL");
+  const runtimeDir = getRuntimeDataDir();
+  fs.mkdirSync(runtimeDir, { recursive: true });
+
+  let db: Database.Database;
+  try {
+    db = new Database(getDbPath());
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(`Failed to open SQLite database: ${message}`);
+  }
+
+  // WAL needs a writable directory; use DELETE journal mode on serverless.
+  db.pragma(`journal_mode = ${isServerlessRuntime() ? "DELETE" : "WAL"}`);
   db.pragma("foreign_keys = ON");
   createSchema(db);
   migrateFromJson(db);

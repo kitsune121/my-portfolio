@@ -1,105 +1,235 @@
 {
   "brand": "Yuki.",
   "fullName": "Yuki Nakamura",
-  "email": "hello@yuki.dev",
+  "email": "nyuki6589@gmail.com",
   "socials": {
-    "github": "https://github.com",
+    "github": "https://github.com/Kitsune121",
     "linkedin": "https://linkedin.com",
     "twitter": "https://twitter.com"
   },
   "nav": [
-    { "label": "Summary", "href": "#summary" },
-    { "label": "Experience", "href": "#experience" },
-    { "label": "Projects", "href": "#projects" },
-    { "label": "Shop", "href": "#shop" },
-    { "label": "Reviews", "href": "#reviews" },
-    { "label": "Hire", "href": "#hire" },
-    { "label": "Certificates", "href": "#certificates" }
+    {
+      "label": "Summary",
+      "href": "#summary",
+      "visible": true
+    },
+    {
+      "label": "Experience",
+      "href": "#experience",
+      "visible": true
+    },
+    {
+      "label": "Projects",
+      "href": "#projects",
+      "visible": true
+    },
+    {
+      "label": "Shop",
+      "href": "#shop",
+      "visible": true
+    },
+    {
+      "label": "Reviews",
+      "href": "#reviews",
+      "visible": true
+    },
+    {
+      "label": "Hire",
+      "href": "#hire",
+      "visible": true
+    },
+    {
+      "label": "Certificates",
+      "href": "#certificates",
+      "visible": false
+    }
   ],
   "hero": {
     "availableText": "Open to opportunities",
     "headline": "Yuki Nakamura",
-    "role": "Frontend Developer · Cloud & AI",
-    "description": "Building modern, responsive web applications with React, Next.js, AWS, Google Cloud, and applied AI.",
+    "role": "AI-Powered Full-Stack & Mobile Developer",
+    "description": "AI-Powered Full-Stack & Mobile Developer building intelligent, scalable, and user-focused digital products.",
     "primaryCta": "Contact",
     "secondaryCta": "Download Resume"
   },
   "about": {
     "title": "Professional Summary",
-    "bio": "Frontend developer specializing in modern, responsive, and interactive web applications. Experienced with React, Next.js, cloud platforms (AWS & Google Cloud), and AI/ML integration. I turn ambitious ideas into polished digital products with strong attention to performance, motion, and craft.",
-    "resumeUrl": "#",
-    "githubUrl": "https://github.com",
-    "image": "/images/profile.jpg",
-    "location": "Tokyo, Japan",
-    "phone": "+81 90 0000 0000"
+    "bio": "AI-Powered Full-Stack & Mobile Developer with 3+ years of commercial software engineering experience, specializing in modern web, mobile, and AI-powered applications. Experienced with React, React Native, Angular, TypeScript, JavaScript, Node.js, PHP/Laravel, REST APIs, databases, and AI integrations. Passionate about transforming complex ideas into reliable, scalable, and intuitive products, with a strong focus on clean architecture, performance, and user experience. Open to full-time, contract, freelance, remote, and international opportunities.",
+    "resumeUrl": "/uploads/Resume.pdf",
+    "githubUrl": "https://github.com/Kitsune121",
+    "image": "/uploads/eeec2f0d-0b96-429a-958f-3379a9878be7.png",
+    "location": "Akashi, Hyogo, Japan",
+    "phone": "",
+    "gmail": "nyuki6589@gmail.com",
+    "whatsapp": "+1 (213) 998-1745",
+    "telegram": "",
+    "discord": ""
   },
   "orbitImages": [
-    { "id": "o1", "label": "React", "image": "/images/orbit/react.svg" },
-    { "id": "o2", "label": "AWS", "image": "/images/orbit/aws.svg" },
-    { "id": "o3", "label": "Google Cloud", "image": "/images/orbit/gcp.svg" },
-    { "id": "o4", "label": "AI", "image": "/images/orbit/ai.svg" },
-    { "id": "o5", "label": "JavaScript", "image": "/images/orbit/js.svg" },
-    { "id": "o6", "label": "Node.js", "image": "/images/orbit/node.svg" },
-    { "id": "o7", "label": "TypeScript", "image": "/images/orbit/ts.svg" },
-    { "id": "o8", "label": "Figma", "image": "/images/orbit/figma.svg" }
+    {
+      "id": "o1",
+      "label": "React",
+      "image": "/images/orbit/react.svg"
+    },
+    {
+      "id": "o2",
+      "label": "AWS",
+      "image": "/images/orbit/aws.svg"
+    },
+    {
+      "id": "o3",
+      "label": "Google Cloud",
+      "image": "/images/orbit/gcp.svg"
+    },
+    {
+      "id": "o4",
+      "label": "AI",
+      "image": "/images/orbit/ai.svg"
+    },
+    {
+      "id": "o5",
+      "label": "JavaScript",
+      "image": "/images/orbit/js.svg"
+    },
+    {
+      "id": "o6",
+      "label": "Node.js",
+      "image": "/images/orbit/node.svg"
+    },
+    {
+      "id": "o7",
+      "label": "TypeScript",
+      "image": "/images/orbit/ts.svg"
+    },
+    {
+      "id": "o8",
+      "label": "Figma",
+      "image": "/images/orbit/figma.svg"
+    }
   ],
   "skills": [
-    { "id": "1", "name": "React", "icon": "react", "level": 95 },
-    { "id": "2", "name": "Next.js", "icon": "nextjs", "level": 92 },
-    { "id": "3", "name": "TypeScript", "icon": "typescript", "level": 90 },
-    { "id": "4", "name": "JavaScript", "icon": "javascript", "level": 94 },
-    { "id": "5", "name": "Node.js", "icon": "nodejs", "level": 88 },
-    { "id": "6", "name": "AWS", "icon": "aws", "level": 85 },
-    { "id": "7", "name": "Google Cloud", "icon": "gcp", "level": 82 },
-    { "id": "8", "name": "AI / LLMs", "icon": "ai", "level": 90 },
-    { "id": "9", "name": "Tailwind CSS", "icon": "tailwind", "level": 93 },
-    { "id": "10", "name": "MongoDB", "icon": "mongodb", "level": 80 },
-    { "id": "11", "name": "Figma", "icon": "figma", "level": 86 },
-    { "id": "12", "name": "Python", "icon": "python", "level": 78 }
+    {
+      "id": "1",
+      "name": "React / React Native",
+      "icon": "react",
+      "level": 95
+    },
+    {
+      "id": "2",
+      "name": "JavaScript / TypeScript",
+      "icon": "nextjs",
+      "level": 95
+    },
+    {
+      "id": "3",
+      "name": "Frontend & Backend Development",
+      "icon": "typescript",
+      "level": 95
+    },
+    {
+      "id": "5",
+      "name": "REST API / API Integration",
+      "icon": "nodejs",
+      "level": 85
+    },
+    {
+      "id": "6",
+      "name": "Angular",
+      "icon": "aws",
+      "level": 85
+    },
+    {
+      "id": "7",
+      "name": "PHP / Laravel",
+      "icon": "gcp",
+      "level": 85
+    },
+    {
+      "id": "8",
+      "name": "AI / LLM Integration",
+      "icon": "ai",
+      "level": 90
+    },
+    {
+      "id": "9",
+      "name": "SQL / MySQL",
+      "icon": "tailwind",
+      "level": 90
+    },
+    {
+      "id": "10",
+      "name": "UI/UX Development",
+      "icon": "mongodb",
+      "level": 80
+    },
+    {
+      "id": "11",
+      "name": "Mobile App Development",
+      "icon": "figma",
+      "level": 80
+    },
+    {
+      "id": "12",
+      "name": "Git / GitHub",
+      "icon": "python",
+      "level": 80
+    },
+    {
+      "id": "a09694e9-af22-43af-aef4-34c46f159024",
+      "name": "Game Development",
+      "icon": "code",
+      "level": 80
+    },
+    {
+      "id": "33f08455-3d2c-4656-811a-170a13b66901",
+      "name": "Cloud / Deployment",
+      "icon": "code",
+      "level": 65
+    }
   ],
   "certificates": [
     {
       "id": "1",
-      "platform": "Amazon Web Services",
-      "title": "AWS Cloud Fundamentals",
-      "description": "Successfully completed AWS Cloud Fundamentals with strong understanding of Amazon Web Services core concepts and services.",
+      "platform": "",
+      "title": "",
+      "description": "",
       "skills": [
         "Cloud Computing Fundamentals",
         "AWS Core Services",
         "Deployment Concepts",
         "Scalable Application Architecture"
       ],
-      "date": "May 15, 2024",
+      "date": "",
       "verificationId": "AWS-CLD-2024-0515-9887",
       "theme": "aws"
     },
     {
       "id": "2",
-      "platform": "Google Cloud",
-      "title": "Google Cloud Fundamentals",
-      "description": "Successfully completed Google Cloud Fundamentals with foundational knowledge of Google Cloud technologies and services.",
+      "platform": "",
+      "title": "",
+      "description": "",
       "skills": [
         "Cloud Infrastructure",
         "Application Deployment",
         "Modern Cloud Technologies",
         "Cloud-based Development Workflow"
       ],
-      "date": "June 10, 2024",
+      "date": "",
       "verificationId": "GCP-CLD-2024-0610-7754",
       "theme": "gcp"
     },
     {
       "id": "3",
-      "platform": "AI Professional Learning",
-      "title": "AI & Machine Learning Development",
-      "description": "Successfully completed AI & Machine Learning Development with practical skills in building AI-powered applications and solutions.",
+      "platform": "",
+      "title": "",
+      "description": "",
       "skills": [
         "Large Language Models (LLMs)",
         "AI Application Development",
         "RAG Architecture",
         "AI-Powered Software Solutions"
       ],
-      "date": "March 20, 2025",
+      "date": "",
       "verificationId": "AI-ML-2025-0320-5512",
       "theme": "ai"
     }
@@ -109,87 +239,174 @@
       "id": "1",
       "school": "Tokyo Institute of Technology",
       "degree": "B.S. in Computer Science",
-      "dates": "2018 — 2022",
-      "description": "Focused on software engineering, human-computer interaction, and intelligent systems. Graduated with honors.",
-      "tags": ["Software Engineering", "Web Development", "AI Fundamentals"]
+      "dates": "2023",
+      "description": "Strong academic foundation in software development, programming, databases, and core computer science principles.",
+      "tags": [
+        "Software Engineering",
+        "Web Development",
+        "AI Fundamentals"
+      ],
+      "image": "/images/education/university.svg"
     }
   ],
   "experience": [
     {
       "id": "1",
       "role": "Frontend Web Developer",
-      "company": "Nova Digital Studio",
-      "dates": "2022 — 2024",
-      "description": "Built high-converting marketing sites and SaaS dashboards with React and Next.js. Led motion design and accessibility improvements across 12+ client projects.",
-      "tags": ["React", "Next.js", "Framer Motion", "Tailwind"],
+      "company": "Digital Solutions Co., Ltd.",
+      "dates": "2023— 2025",
+      "description": "Built responsive and user-friendly web applications using React, Angular, JavaScript, HTML, and CSS. Developed reusable UI components, integrated APIs, optimized website performance, and collaborated on full-stack web projects.",
+      "tags": [
+        "React",
+        "Next.js",
+        "Framer Motion",
+        "Tailwind"
+      ],
       "image": "/images/work/work-2022-2024.png"
     },
     {
       "id": "2",
-      "role": "Full Stack Developer",
-      "company": "CloudForge Labs",
+      "role": "AI Powered Full Stack & Mobile Developer",
+      "company": "Independent / Freelance",
       "dates": "2024 — Present",
-      "description": "Shipping AI-assisted web products on AWS and Google Cloud. Designed RAG pipelines, admin CMS platforms, and real-time collaborative interfaces.",
-      "tags": ["TypeScript", "AWS", "GCP", "LLMs", "Node.js"],
+      "description": "Develop modern full-stack and mobile applications using AI-assisted development workflows, React, React Native, PHP, Laravel, and cloud technologies. Build responsive interfaces, REST APIs, mobile applications, and scalable software solutions.",
+      "tags": [
+        "TypeScript",
+        "AWS",
+        "GCP",
+        "LLMs",
+        "Node.js"
+      ],
       "image": "/images/work/work-2024-present.png"
     }
   ],
   "projects": [
     {
       "id": "p1",
-      "title": "AI Portfolio Assistant",
-      "subtitle": "LLM + RAG companion for personal brands",
-      "description": "An intelligent portfolio companion that answers visitor questions and recommends projects.",
-      "longDescription": "Built an end-to-end AI assistant embedded in a portfolio experience. Visitors can ask about skills, case studies, and availability. The system uses retrieval-augmented generation over project docs, then streams natural answers with source citations. Includes an admin CMS for knowledge updates and analytics for popular questions.",
-      "image": "/images/certificates.jpg",
-      "gallery": ["/images/certificates.jpg", "/images/profile.jpg"],
-      "tags": ["Next.js", "OpenAI", "RAG", "Tailwind"],
-      "role": "Lead Frontend & AI Integration",
-      "year": "2025",
+      "title": "AI Personal Productivity Assistant",
+      "subtitle": "Intelligent SaaS Platform for Productivity & Task Management",
+      "description": "An AI-powered productivity platform that helps users organize tasks, manage projects, summarize information, and automate everyday workflows.",
+      "longDescription": "Designed and developed a modern SaaS productivity application combining AI capabilities with task and project management. The platform provides user authentication, personal dashboards, task management, project organization, AI-powered text generation and summarization, notifications, and REST API integration. Built a responsive frontend and scalable backend architecture with a focus on performance, usability, and maintainability.",
+      "image": "/uploads/cf917e15-96c2-4a44-86c1-49b205a42fe8.png",
+      "gallery": [
+        "/uploads/cf917e15-96c2-4a44-86c1-49b205a42fe8.png",
+        "/uploads/24a5c231-a981-4db2-87cf-1bb2bc76ff32.png",
+        "/uploads/53d7a6e1-bf3c-464c-bf9f-c208f2b3397e.png",
+        "/uploads/e3efa481-5c48-4db9-9f43-b0de238f5156.png"
+      ],
+      "tags": [
+        "React",
+        "Laravel",
+        "PHP",
+        "MySQL",
+        "JavaScript",
+        "REST API",
+        "AI",
+        "SaaS",
+        "OpenAI API",
+        "Authentication",
+        "Dashboard"
+      ],
+      "role": "AI-Powered Full Stack Developer",
+      "year": "2024–2025",
       "previewUrl": "#",
       "sourceUrl": "#",
       "highlights": [
-        "Streaming chat UI with citation cards",
-        "Knowledge base editable from admin",
-        "Latency under 1.2s for common questions"
+        "AI-powered task and content assistance",
+        "Responsive SaaS dashboard",
+        "User authentication and account management",
+        "Task and project management",
+        "REST API integration",
+        "Database design and backend development",
+        "AI-assisted automation workflows",
+        "Performance-focused frontend architecture"
       ]
     },
     {
       "id": "p2",
-      "title": "Cloud Deploy Dashboard",
-      "subtitle": "Unified AWS + GCP release console",
-      "description": "One console for deploys, live metrics, and AI-suggested infrastructure fixes.",
-      "longDescription": "Designed a dark operational dashboard that unifies deployment pipelines across AWS and Google Cloud. Engineers get one-click rollbacks, environment health maps, and AI suggestions for cost and reliability. Built with React, Node services, and real-time websocket updates.",
-      "image": "/images/certificates.jpg",
-      "gallery": ["/images/certificates.jpg"],
-      "tags": ["React", "AWS", "GCP", "Node.js"],
-      "role": "Full Stack Developer",
-      "year": "2024",
+      "title": "Smart E-Commerce / Shopify Platform",
+      "subtitle": "AI-Enhanced E-Commerce Store & Shopify Management System",
+      "description": "A modern e-commerce platform integrating Shopify capabilities with AI-powered product discovery, customer assistance, and store management.",
+      "longDescription": "Developed an e-commerce solution focused on modern storefront experiences and Shopify integration. The project includes product and collection management, customer accounts, shopping cart functionality, order workflows, responsive storefront interfaces, Shopify API integration, and AI-powered customer-support and product-recommendation features. Built reusable frontend components and connected the storefront with backend services and third-party APIs.",
+      "image": "/uploads/09f78ebb-90ef-4247-8f39-4ff804fb1b68.png",
+      "gallery": [
+        "/uploads/09f78ebb-90ef-4247-8f39-4ff804fb1b68.png",
+        "/uploads/312e93af-f2f4-4c73-adb4-1b471fa66ff2.png",
+        "/uploads/711fa83d-79fe-4bb7-b1f5-31d7dd199bbf.png",
+        "/uploads/b345a341-d7a4-4eab-9dd6-712d4f6e5fdb.png"
+      ],
+      "tags": [
+        "Shopify",
+        "Shopify API",
+        "React",
+        "JavaScript",
+        "Liquid",
+        "Laravel",
+        "PHP",
+        "REST API",
+        "E-Commerce",
+        "AI",
+        "GraphQL",
+        "MySQL"
+      ],
+      "role": "Full Stack & Shopify Developer",
+      "year": "2025–2026",
       "previewUrl": "#",
       "sourceUrl": "#",
       "highlights": [
-        "Cross-cloud deploy timeline",
-        "Live metrics with anomaly alerts",
-        "Rollback in under 30 seconds"
+        "Shopify API integration",
+        "Custom e-commerce storefront",
+        "Responsive product and collection pages",
+        "AI-powered product recommendations",
+        "AI customer-support functionality",
+        "Shopping cart and customer workflows",
+        "REST/GraphQL API integration",
+        "Reusable React components",
+        "Store administration functionality"
       ]
     },
     {
       "id": "p3",
-      "title": "Motion Studio Landing",
-      "subtitle": "High-craft marketing site for a design studio",
-      "description": "Immersive scroll storytelling with cinematic motion and conversion-focused CTAs.",
-      "longDescription": "A performance-focused marketing site for a motion design studio. Featured scroll-triggered scenes, custom cursors, and modular case-study layouts. Optimized for Core Web Vitals while keeping rich animation. Client reported a 38% increase in discovery-call bookings after launch.",
-      "image": "/images/profile.jpg",
-      "gallery": ["/images/profile.jpg", "/images/certificates.jpg"],
-      "tags": ["Next.js", "Framer Motion", "GSAP", "SEO"],
-      "role": "Frontend Developer",
-      "year": "2023",
+      "title": "Mobile Finance Manager",
+      "subtitle": "Cross-Platform Personal Finance & Expense Management App",
+      "description": "A cross-platform mobile application for managing personal finances, tracking expenses, monitoring budgets, and visualizing financial activity.",
+      "longDescription": "Designed and developed a mobile finance-management application using React Native. The application allows users to record income and expenses, organize transactions into categories, establish budgets, monitor spending patterns, and view financial summaries through an intuitive mobile dashboard. Developed API communication between the mobile application and backend services while implementing authentication, data persistence, and responsive mobile interfaces.",
+      "image": "/uploads/2b941038-0270-4606-b6c1-7c72c89642e6.png",
+      "gallery": [
+        "/uploads/2b941038-0270-4606-b6c1-7c72c89642e6.png",
+        "/uploads/a7793b6d-d5f9-4971-a709-5e6a334b9f70.png",
+        "/uploads/afc326ce-16df-4914-b394-5ca68c409484.png",
+        "/uploads/2166c0f2-eb2b-4abb-a811-066614a3d3a5.png"
+      ],
+      "tags": [
+        "React Native",
+        "React",
+        "JavaScript",
+        "TypeScript",
+        "Laravel",
+        "PHP",
+        "MySQL",
+        "REST API",
+        "Mobile Development",
+        "Android",
+        "iOS",
+        "Authentication"
+      ],
+      "role": "Full Stack & Mobile Developer",
+      "year": "2025–2026",
       "previewUrl": "#",
       "sourceUrl": "#",
       "highlights": [
-        "Scroll scenes under 60fps on mid devices",
-        "Modular case study templates",
-        "+38% discovery call conversions"
+        "Cross-platform Android and iOS application",
+        "Expense and income tracking",
+        "Budget management",
+        "Transaction categorization",
+        "Financial dashboard",
+        "REST API integration",
+        "User authentication",
+        "Backend and database development",
+        "Responsive mobile UI",
+        "Data visualization and financial summaries"
       ]
     }
   ],
@@ -201,12 +418,24 @@
       "description": "Polished resume, cover letter, and AI prompt pack for tech roles.",
       "longDescription": "A complete personal branding kit: editable resume templates, cover letter system, LinkedIn rewrite prompts, and interview frameworks for frontend and full-stack roles.",
       "image": "/images/certificates.jpg",
-      "gallery": ["/images/certificates.jpg", "/images/profile.jpg"],
-      "tags": ["Career", "AI", "Templates"],
+      "gallery": [
+        "/images/certificates.jpg",
+        "/images/profile.jpg"
+      ],
+      "tags": [
+        "Career",
+        "AI",
+        "Templates"
+      ],
       "price": 49,
       "currency": "USD",
       "buyUrl": "#",
-      "features": ["3 resume layouts", "AI rewrite prompts", "Cover letter system", "Follow-up email pack"],
+      "features": [
+        "3 resume layouts",
+        "AI rewrite prompts",
+        "Cover letter system",
+        "Follow-up email pack"
+      ],
       "stock": "Digital download",
       "featured": true
     },
@@ -217,78 +446,40 @@
       "description": "Dark premium starter with admin CMS, animations, and deploy scripts.",
       "longDescription": "Ship faster with a production Next.js starter: Framer Motion, admin content JSON, auth, upload routes, and responsive sections already wired.",
       "image": "/images/work/work-2024-present.png",
-      "gallery": ["/images/work/work-2024-present.png"],
-      "tags": ["Next.js", "TypeScript", "CMS"],
+      "gallery": [
+        "/images/work/work-2024-present.png"
+      ],
+      "tags": [
+        "Next.js",
+        "TypeScript",
+        "CMS"
+      ],
       "price": 129,
       "currency": "USD",
       "buyUrl": "#",
-      "features": ["Admin CMS", "Auth + uploads", "Animated sections", "Deploy guide"],
+      "features": [
+        "Admin CMS",
+        "Auth + uploads",
+        "Animated sections",
+        "Deploy guide"
+      ],
       "stock": "In stock",
       "featured": true
-    },
-    {
-      "id": "prod3",
-      "title": "Motion UI Pack",
-      "subtitle": "50+ micro-interactions",
-      "description": "Drop-in Framer Motion components for landings and dashboards.",
-      "longDescription": "A curated library of hover states, page transitions, cursor effects, and scroll reveals ready to paste into React projects.",
-      "image": "/images/work/work-2022-2024.png",
-      "gallery": ["/images/work/work-2022-2024.png"],
-      "tags": ["Motion", "UI", "React"],
-      "price": 79,
-      "currency": "USD",
-      "buyUrl": "#",
-      "features": ["50+ components", "TypeScript", "Copy-paste ready", "Demo included"],
-      "stock": "In stock",
-      "featured": false
-    },
-    {
-      "id": "prod4",
-      "title": "Cloud Launch Checklist",
-      "subtitle": "AWS + GCP go-live playbook",
-      "description": "Checklists and notes for safe production launches.",
-      "longDescription": "A practical launch kit for cloud apps: security checklist, cost controls, monitoring setup, rollback plans, and sample snippets.",
-      "image": "/images/orbit/aws.svg",
-      "gallery": ["/images/orbit/aws.svg", "/images/orbit/gcp.svg"],
-      "tags": ["AWS", "GCP", "DevOps"],
-      "price": 39,
-      "currency": "USD",
-      "buyUrl": "#",
-      "features": ["Launch checklist", "Monitoring map", "Rollback tips", "Cost tips"],
-      "stock": "Digital download",
-      "featured": false
-    },
-    {
-      "id": "prod5",
-      "title": "1:1 Code Review",
-      "subtitle": "60-minute deep dive with Yuki",
-      "description": "Live review of your portfolio, PR, or product UI with actionable notes.",
-      "longDescription": "Book a private session. Share your repo or Figma beforehand and get a prioritized improvement list covering architecture, UX, performance, and hiring-readiness.",
-      "image": "/images/profile.jpg",
-      "gallery": ["/images/profile.jpg"],
-      "tags": ["Mentoring", "Review", "Career"],
-      "price": 199,
-      "currency": "USD",
-      "buyUrl": "#",
-      "features": ["60 min call", "Written summary", "Priority fix list", "Follow-up email"],
-      "stock": "Limited slots",
-      "featured": true
-    },
-    {
-      "id": "prod6",
-      "title": "RAG Chat Widget",
-      "subtitle": "Embeddable AI assistant for portfolios",
-      "description": "Ready-to-brand chat widget with OpenAI wiring and knowledge prompts.",
-      "longDescription": "Drop an AI assistant into any site. Includes React widget, API route example, system prompt templates, and admin key configuration notes.",
-      "image": "/images/orbit/ai.svg",
-      "gallery": ["/images/orbit/ai.svg", "/images/certificates.jpg"],
-      "tags": ["AI", "OpenAI", "Widget"],
-      "price": 89,
-      "currency": "USD",
-      "buyUrl": "#",
-      "features": ["React widget", "API example", "Prompt pack", "Branding hooks"],
-      "stock": "In stock",
-      "featured": false
     }
-  ]
+  ],
+  "sectionVisibility": {
+    "hero": true,
+    "stats": true,
+    "summary": true,
+    "experience": true,
+    "education": true,
+    "skills": true,
+    "projects": true,
+    "shop": true,
+    "reviews": true,
+    "hire": true,
+    "certificates": false,
+    "footer": true,
+    "ai": true
+  }
 }
