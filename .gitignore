@@ -37,6 +37,7 @@ data/portfolio.db
 data/portfolio.db-*
 data/*.db
 data/*.db-*
+data/.runtime
 
 # Typescript
 next-env.d.ts

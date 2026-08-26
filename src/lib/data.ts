@@ -1,5 +1,20 @@
 import { randomUUID } from "crypto";
-import { getDb, getKv, setKv } from "./db";
+import {
+  getKv,
+  setKv,
+  getStatsRow,
+  recordVisitRow,
+  incrementUniqueVisitsRow,
+  getReviewRows,
+  saveReviewRows,
+  insertReviewRow,
+  getHireRows,
+  saveHireRows,
+  insertHireRow,
+  getOrderRows,
+  saveOrderRows,
+  insertOrderRow,
+} from "./storage";
 import type {
   ClientReview,
   HireRequest,
@@ -161,60 +176,25 @@ export function saveContent(content: SiteContent) {
 }
 
 export function getStats(): SiteStats {
-  const row = getDb()
-    .prepare("SELECT visits, unique_visits FROM stats WHERE id = 1")
-    .get() as { visits: number; unique_visits: number } | undefined;
-  const hireRow = getDb().prepare("SELECT COUNT(*) AS c FROM hires").get() as
-    | { c: number }
-    | undefined;
+  const row = getStatsRow();
   return {
-    visits: row?.visits || 0,
-    // Unique = hire requests received
-    uniqueVisits: Number(hireRow?.c) || 0,
+    visits: row.visits,
+    uniqueVisits: row.hireCount,
   };
 }
 
 export function recordVisit(visitorKey: string): SiteStats {
-  const db = getDb();
-  const exists = db
-    .prepare("SELECT 1 AS ok FROM visitors WHERE visitor_key = ?")
-    .get(visitorKey) as { ok: number } | undefined;
-
-  db.prepare("UPDATE stats SET visits = visits + 1 WHERE id = 1").run();
-
-  if (!exists) {
-    db.prepare(
-      "INSERT INTO visitors (visitor_key, created_at) VALUES (?, datetime('now'))"
-    ).run(visitorKey);
-  }
-
+  recordVisitRow(visitorKey);
   return getStats();
 }
 
 export function incrementUniqueOnHire(): SiteStats {
-  getDb()
-    .prepare("UPDATE stats SET unique_visits = unique_visits + 1 WHERE id = 1")
-    .run();
+  incrementUniqueVisitsRow();
   return getStats();
 }
 
 export function getReviews(): ClientReview[] {
-  const rows = getDb()
-    .prepare(
-      `SELECT id, name, role, company, rating, comment, avatar, approved, created_at
-       FROM reviews ORDER BY datetime(created_at) DESC`
-    )
-    .all() as Array<{
-    id: string;
-    name: string;
-    role: string;
-    company: string;
-    rating: number;
-    comment: string;
-    avatar: string;
-    approved: number;
-    created_at: string;
-  }>;
+  const rows = getReviewRows();
 
   return rows.map((r) => ({
     id: r.id,
@@ -234,29 +214,19 @@ export function getApprovedReviews(): ClientReview[] {
 }
 
 export function saveReviews(reviews: ClientReview[]) {
-  const db = getDb();
-  const tx = db.transaction((items: ClientReview[]) => {
-    db.prepare("DELETE FROM reviews").run();
-    const insert = db.prepare(
-      `INSERT INTO reviews
-       (id, name, role, company, rating, comment, avatar, approved, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    );
-    for (const r of items) {
-      insert.run(
-        r.id,
-        r.name,
-        r.role || "",
-        r.company || "",
-        r.rating || 5,
-        r.comment,
-        r.avatar || "",
-        r.approved ? 1 : 0,
-        r.createdAt
-      );
-    }
-  });
-  tx(reviews);
+  saveReviewRows(
+    reviews.map((r) => ({
+      id: r.id,
+      name: r.name,
+      role: r.role || "",
+      company: r.company || "",
+      rating: r.rating || 5,
+      comment: r.comment,
+      avatar: r.avatar || "",
+      approved: r.approved ? 1 : 0,
+      created_at: r.createdAt,
+    }))
+  );
 }
 
 export function addReview(
@@ -275,42 +245,22 @@ export function addReview(
     approved: Boolean(input.approved),
     createdAt: new Date().toISOString(),
   };
-  getDb()
-    .prepare(
-      `INSERT INTO reviews
-       (id, name, role, company, rating, comment, avatar, approved, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    )
-    .run(
-      review.id,
-      review.name,
-      review.role,
-      review.company,
-      review.rating,
-      review.comment,
-      review.avatar,
-      review.approved ? 1 : 0,
-      review.createdAt
-    );
+  insertReviewRow({
+    id: review.id,
+    name: review.name,
+    role: review.role,
+    company: review.company,
+    rating: review.rating,
+    comment: review.comment,
+    avatar: review.avatar,
+    approved: review.approved ? 1 : 0,
+    created_at: review.createdAt,
+  });
   return review;
 }
 
 export function getHireRequests(): HireRequest[] {
-  const rows = getDb()
-    .prepare(
-      `SELECT id, name, email, company, budget, message, status, created_at
-       FROM hires ORDER BY datetime(created_at) DESC`
-    )
-    .all() as Array<{
-    id: string;
-    name: string;
-    email: string;
-    company: string;
-    budget: string;
-    message: string;
-    status: HireRequest["status"];
-    created_at: string;
-  }>;
+  const rows = getHireRows();
 
   return rows.map((h) => ({
     id: h.id,
@@ -319,34 +269,24 @@ export function getHireRequests(): HireRequest[] {
     company: h.company,
     budget: h.budget,
     message: h.message,
-    status: h.status,
+    status: h.status as HireRequest["status"],
     createdAt: h.created_at,
   }));
 }
 
 export function saveHireRequests(items: HireRequest[]) {
-  const db = getDb();
-  const tx = db.transaction((list: HireRequest[]) => {
-    db.prepare("DELETE FROM hires").run();
-    const insert = db.prepare(
-      `INSERT INTO hires
-       (id, name, email, company, budget, message, status, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-    );
-    for (const h of list) {
-      insert.run(
-        h.id,
-        h.name,
-        h.email,
-        h.company || "",
-        h.budget || "",
-        h.message,
-        h.status || "new",
-        h.createdAt
-      );
-    }
-  });
-  tx(items);
+  saveHireRows(
+    items.map((h) => ({
+      id: h.id,
+      name: h.name,
+      email: h.email,
+      company: h.company || "",
+      budget: h.budget || "",
+      message: h.message,
+      status: h.status || "new",
+      created_at: h.createdAt,
+    }))
+  );
 }
 
 export function addHireRequest(
@@ -358,44 +298,22 @@ export function addHireRequest(
     status: "new",
     createdAt: new Date().toISOString(),
   };
-  getDb()
-    .prepare(
-      `INSERT INTO hires
-       (id, name, email, company, budget, message, status, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-    )
-    .run(
-      item.id,
-      item.name,
-      item.email,
-      item.company,
-      item.budget,
-      item.message,
-      item.status,
-      item.createdAt
-    );
+  insertHireRow({
+    id: item.id,
+    name: item.name,
+    email: item.email,
+    company: item.company,
+    budget: item.budget,
+    message: item.message,
+    status: item.status,
+    created_at: item.createdAt,
+  });
   incrementUniqueOnHire();
   return item;
 }
 
 export function getProductOrders(): ProductOrder[] {
-  const rows = getDb()
-    .prepare(
-      `SELECT id, product_id, product_title, price, currency, name, email, note, status, created_at
-       FROM orders ORDER BY datetime(created_at) DESC`
-    )
-    .all() as Array<{
-    id: string;
-    product_id: string;
-    product_title: string;
-    price: number;
-    currency: string;
-    name: string;
-    email: string;
-    note: string;
-    status: ProductOrder["status"];
-    created_at: string;
-  }>;
+  const rows = getOrderRows();
 
   return rows.map((o) => ({
     id: o.id,
@@ -406,36 +324,26 @@ export function getProductOrders(): ProductOrder[] {
     name: o.name,
     email: o.email,
     note: o.note,
-    status: o.status,
+    status: o.status as ProductOrder["status"],
     createdAt: o.created_at,
   }));
 }
 
 export function saveProductOrders(items: ProductOrder[]) {
-  const db = getDb();
-  const tx = db.transaction((list: ProductOrder[]) => {
-    db.prepare("DELETE FROM orders").run();
-    const insert = db.prepare(
-      `INSERT INTO orders
-       (id, product_id, product_title, price, currency, name, email, note, status, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    );
-    for (const o of list) {
-      insert.run(
-        o.id,
-        o.productId,
-        o.productTitle,
-        o.price,
-        o.currency,
-        o.name,
-        o.email,
-        o.note || "",
-        o.status || "new",
-        o.createdAt
-      );
-    }
-  });
-  tx(items);
+  saveOrderRows(
+    items.map((o) => ({
+      id: o.id,
+      product_id: o.productId,
+      product_title: o.productTitle,
+      price: o.price,
+      currency: o.currency,
+      name: o.name,
+      email: o.email,
+      note: o.note || "",
+      status: o.status || "new",
+      created_at: o.createdAt,
+    }))
+  );
 }
 
 export function addProductOrder(
@@ -447,23 +355,17 @@ export function addProductOrder(
     status: "new",
     createdAt: new Date().toISOString(),
   };
-  getDb()
-    .prepare(
-      `INSERT INTO orders
-       (id, product_id, product_title, price, currency, name, email, note, status, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    )
-    .run(
-      item.id,
-      item.productId,
-      item.productTitle,
-      item.price,
-      item.currency,
-      item.name,
-      item.email,
-      item.note,
-      item.status,
-      item.createdAt
-    );
+  insertOrderRow({
+    id: item.id,
+    product_id: item.productId,
+    product_title: item.productTitle,
+    price: item.price,
+    currency: item.currency,
+    name: item.name,
+    email: item.email,
+    note: item.note,
+    status: item.status,
+    created_at: item.createdAt,
+  });
   return item;
 }

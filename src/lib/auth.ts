@@ -1,7 +1,7 @@
 import { scryptSync, randomBytes, timingSafeEqual } from "crypto";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import { getDb } from "./db";
+import { getAuthRow, saveAuthRow } from "./storage";
 import type { AuthData } from "./types";
 
 const COOKIE_NAME = "portfolio_admin_session";
@@ -23,9 +23,7 @@ export function verifyPassword(password: string, salt: string, hash: string) {
 }
 
 export function getAuth(): AuthData {
-  const row = getDb()
-    .prepare("SELECT email, password_hash, salt FROM auth WHERE id = 1")
-    .get() as { email: string; password_hash: string; salt: string } | undefined;
+  const row = getAuthRow();
 
   if (!row) {
     const { salt, hash } = hashPassword("Luckystar1221!");
@@ -58,16 +56,11 @@ export function getAuth(): AuthData {
 }
 
 export function saveAuth(auth: AuthData) {
-  getDb()
-    .prepare(
-      `INSERT INTO auth (id, email, password_hash, salt)
-       VALUES (1, ?, ?, ?)
-       ON CONFLICT(id) DO UPDATE SET
-         email = excluded.email,
-         password_hash = excluded.password_hash,
-         salt = excluded.salt`
-    )
-    .run(auth.email, auth.passwordHash, auth.salt);
+  saveAuthRow({
+    email: auth.email,
+    password_hash: auth.passwordHash,
+    salt: auth.salt,
+  });
 }
 
 export async function createSession(email: string) {

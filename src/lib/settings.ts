@@ -1,4 +1,4 @@
-import { getDb } from "./db";
+import { getSettingsRow, saveSettingsRow } from "./storage";
 
 export interface AppSettings {
   openaiApiKey: string;
@@ -15,19 +15,7 @@ const defaults: AppSettings = {
 };
 
 export function getSettings(): AppSettings {
-  const row = getDb()
-    .prepare(
-      "SELECT openai_api_key, ai_enabled, ai_model, ai_welcome FROM settings WHERE id = 1"
-    )
-    .get() as
-    | {
-        openai_api_key: string;
-        ai_enabled: number;
-        ai_model: string;
-        ai_welcome: string;
-      }
-    | undefined;
-
+  const row = getSettingsRow();
   if (!row) return { ...defaults };
 
   return {
@@ -39,22 +27,12 @@ export function getSettings(): AppSettings {
 }
 
 export function saveSettings(settings: AppSettings) {
-  getDb()
-    .prepare(
-      `INSERT INTO settings (id, openai_api_key, ai_enabled, ai_model, ai_welcome)
-       VALUES (1, ?, ?, ?, ?)
-       ON CONFLICT(id) DO UPDATE SET
-         openai_api_key = excluded.openai_api_key,
-         ai_enabled = excluded.ai_enabled,
-         ai_model = excluded.ai_model,
-         ai_welcome = excluded.ai_welcome`
-    )
-    .run(
-      settings.openaiApiKey || "",
-      settings.aiEnabled ? 1 : 0,
-      settings.aiModel || defaults.aiModel,
-      settings.aiWelcome || ""
-    );
+  saveSettingsRow({
+    openai_api_key: settings.openaiApiKey || "",
+    ai_enabled: settings.aiEnabled ? 1 : 0,
+    ai_model: settings.aiModel || defaults.aiModel,
+    ai_welcome: settings.aiWelcome || "",
+  });
 }
 
 export function getOpenAIKey(): string {
