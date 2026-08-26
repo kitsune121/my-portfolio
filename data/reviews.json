@@ -1,0 +1,35 @@
+[
+  {
+    "id": "r1",
+    "name": "Sarah Chen",
+    "role": "Product Manager",
+    "company": "Aurora Labs",
+    "rating": 5,
+    "comment": "Yuki delivered a stunning AI-powered experience ahead of schedule. Clear communication and exceptional craft.",
+    "avatar": "",
+    "approved": true,
+    "createdAt": "2025-11-12T10:00:00.000Z"
+  },
+  {
+    "id": "r2",
+    "name": "Marcus Webb",
+    "role": "CTO",
+    "company": "BrightPath",
+    "rating": 5,
+    "comment": "Working with Yuki Nakamura was seamless. Our cloud dashboard feels premium and performs flawlessly.",
+    "avatar": "",
+    "approved": true,
+    "createdAt": "2026-01-08T14:30:00.000Z"
+  },
+  {
+    "id": "r3",
+    "name": "Elena Rossi",
+    "role": "Founder",
+    "company": "Studio North",
+    "rating": 5,
+    "comment": "Yuki turned our brand vision into an interactive site clients still talk about. Highly recommend hiring him.",
+    "avatar": "",
+    "approved": true,
+    "createdAt": "2026-03-22T09:15:00.000Z"
+  }
+]
