@@ -65,9 +65,9 @@ function normalizeContent(raw: Partial<SiteContent>): SiteContent {
     raw.about?.githubUrl || raw.socials?.github || "https://github.com";
 
   return {
-    brand: raw.brand || "Yuki.",
-    fullName: raw.fullName || "Yuki Nakamura",
-    email: raw.email || "hello@yuki.dev",
+    brand: raw.brand || "Koichi.",
+    fullName: raw.fullName || "Koichi Sato",
+    email: raw.email || "koichisato049@gmail.com",
     socials: {
       github: githubUrl,
       linkedin: raw.socials?.linkedin || "https://linkedin.com",
@@ -96,7 +96,7 @@ function normalizeContent(raw: Partial<SiteContent>): SiteContent {
       image: raw.about?.image || "/images/profile.jpg",
       location: raw.about?.location || "",
       phone: raw.about?.phone || "",
-      gmail: raw.about?.gmail || raw.email || "nyuki6589@gmail.com",
+      gmail: raw.about?.gmail || raw.email || "koichisato049@gmail.com",
       whatsapp: raw.about?.whatsapp || "",
       telegram: raw.about?.telegram || "",
       discord: raw.about?.discord || "",

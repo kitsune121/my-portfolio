@@ -18,9 +18,9 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "Yuki Nakamura — Resume",
+  title: "Kitsune121",
   description:
-    "Professional resume of Yuki Nakamura — Frontend Developer specializing in React, cloud, and AI.",
+    "Professional resume of Koichi Sato — Frontend Developer specializing in React, cloud, and AI.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -1,7 +1,7 @@
 {
-  "brand": "Yuki.",
-  "fullName": "Yuki Nakamura",
-  "email": "nyuki6589@gmail.com",
+  "brand": "Koichi.",
+  "fullName": "Koichi Sato",
+  "email": "koichisato049@gmail.com",
   "socials": {
     "github": "https://github.com/Kitsune121",
     "linkedin": "https://linkedin.com",
@@ -46,7 +46,7 @@
   ],
   "hero": {
     "availableText": "Open to opportunities",
-    "headline": "Yuki Nakamura",
+    "headline": "Koichi Sato",
     "role": "AI-Powered Full-Stack & Mobile Developer",
     "description": "AI-Powered Full-Stack & Mobile Developer building intelligent, scalable, and user-focused digital products.",
     "primaryCta": "Contact",
@@ -60,7 +60,7 @@
     "image": "/uploads/eeec2f0d-0b96-429a-958f-3379a9878be7.png",
     "location": "Akashi, Hyogo, Japan",
     "phone": "",
-    "gmail": "nyuki6589@gmail.com",
+    "gmail": "koichisato049@gmail.com",
     "whatsapp": "+1 (213) 998-1745",
     "telegram": "",
     "discord": ""

@@ -6,7 +6,7 @@ import type { AuthData } from "./types";
 
 const COOKIE_NAME = "portfolio_admin_session";
 const SECRET = new TextEncoder().encode(
-  process.env.ADMIN_SECRET || "yuki-portfolio-admin-secret-change-me"
+  process.env.ADMIN_SECRET || "koichi-portfolio-admin-secret-change-me"
 );
 
 export function hashPassword(password: string, salt?: string) {
@@ -28,7 +28,7 @@ export function getAuth(): AuthData {
   if (!row) {
     const { salt, hash } = hashPassword("Luckystar1221!");
     const initial: AuthData = {
-      email: "nyuki6589@gmail.com",
+      email: "koichisato049@gmail.com",
       passwordHash: hash,
       salt,
     };
@@ -37,10 +37,10 @@ export function getAuth(): AuthData {
   }
 
   // Upgrade previous seed login to the new default credentials
-  if (row.email.toLowerCase() === "admin@yuki.dev") {
+  if (row.email.toLowerCase() === "koichisato049@gmail.com") {
     const { salt, hash } = hashPassword("Luckystar1221!");
     const next: AuthData = {
-      email: "nyuki6589@gmail.com",
+      email: "koichisato049@gmail.com",
       passwordHash: hash,
       salt,
     };

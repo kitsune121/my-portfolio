@@ -104,7 +104,7 @@ export default function AdminPage() {
   const [section, setSection] = useState<Section>("basics");
   const [menuOpen, setMenuOpen] = useState(false);
   const [login, setLogin] = useState({
-    email: "nyuki6589@gmail.com",
+    email: "koichisato049@gmail.com",
     password: "",
   });
   const [loginError, setLoginError] = useState("");
@@ -395,7 +395,7 @@ export default function AdminPage() {
             Resume Admin
           </h1>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            nyuki6589@gmail.com
+            koichisato049@gmail.com
           </p>
           <div className="mt-6 grid gap-3">
             <div>

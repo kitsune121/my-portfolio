@@ -33,7 +33,7 @@ export async function POST(req: Request) {
   return NextResponse.json({
     ok: true,
     hire: item,
-    message: "Hire request sent. Yuki will get back to you soon.",
+    message: "Hire request sent. Koichi will get back to you soon.",
   });
 }
 

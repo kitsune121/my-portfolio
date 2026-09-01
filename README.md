@@ -1,4 +1,4 @@
-# Yuki Nakamura — Resume
+# Koichi Sato — Resume
 
 Editorial resume portfolio with custom cursor, motion, and a simple admin CMS.
 
@@ -29,4 +29,4 @@ Summary · Experience · Education · Skills · Certificates
 ## Admin
 
 http://localhost:3000/admin  
-Default: `nyuki6589@gmail.com` / `Luckystar1221!`
+Default: `koichisato049@gmail.com`
