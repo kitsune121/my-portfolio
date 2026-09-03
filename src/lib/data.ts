@@ -1,10 +1,12 @@
 import { randomUUID } from "crypto";
+import fs from "fs";
+import path from "path";
 import {
   getKv,
   setKv,
   getStatsRow,
   recordVisitRow,
-  incrementUniqueVisitsRow,
+  setStatsRow,
   getReviewRows,
   saveReviewRows,
   insertReviewRow,
@@ -155,6 +157,7 @@ function normalizeContent(raw: Partial<SiteContent>): SiteContent {
             price: Number(p.price) || 0,
             currency: p.currency || "USD",
             buyUrl: p.buyUrl || "#",
+            downloadUrl: p.downloadUrl || "",
             features: Array.isArray(p.features) ? p.features : [],
             stock: p.stock || "In stock",
             featured: Boolean(p.featured),
@@ -171,26 +174,61 @@ export function getContent(): SiteContent {
   return normalizeContent(getKv<Partial<SiteContent>>("portfolio", {}));
 }
 
+function syncPortfolioJson(content: SiteContent) {
+  try {
+    const file = path.join(process.cwd(), "data", "portfolio.json");
+    fs.writeFileSync(file, JSON.stringify(content, null, 2), "utf-8");
+  } catch {
+    // best-effort project seed sync
+  }
+}
+
+function syncStatsJson(stats: SiteStats) {
+  try {
+    const file = path.join(process.cwd(), "data", "stats.json");
+    fs.writeFileSync(
+      file,
+      JSON.stringify(
+        { visits: stats.visits, uniqueVisits: stats.uniqueVisits },
+        null,
+        2
+      ),
+      "utf-8"
+    );
+  } catch {
+    // best-effort project seed sync
+  }
+}
+
 export function saveContent(content: SiteContent) {
-  setKv("portfolio", normalizeContent(content));
+  const normalized = normalizeContent(content);
+  setKv("portfolio", normalized);
+  syncPortfolioJson(normalized);
 }
 
 export function getStats(): SiteStats {
   const row = getStatsRow();
   return {
     visits: row.visits,
-    uniqueVisits: row.hireCount,
+    uniqueVisits: row.unique_visits,
   };
 }
 
 export function recordVisit(visitorKey: string): SiteStats {
   recordVisitRow(visitorKey);
-  return getStats();
+  const stats = getStats();
+  syncStatsJson(stats);
+  return stats;
 }
 
-export function incrementUniqueOnHire(): SiteStats {
-  incrementUniqueVisitsRow();
-  return getStats();
+export function setStats(visits: number, uniqueVisits: number): SiteStats {
+  setStatsRow({
+    visits: Math.max(0, Math.floor(Number(visits) || 0)),
+    unique_visits: Math.max(0, Math.floor(Number(uniqueVisits) || 0)),
+  });
+  const stats = getStats();
+  syncStatsJson(stats);
+  return stats;
 }
 
 export function getReviews(): ClientReview[] {
@@ -308,7 +346,6 @@ export function addHireRequest(
     status: item.status,
     created_at: item.createdAt,
   });
-  incrementUniqueOnHire();
   return item;
 }
 

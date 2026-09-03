@@ -258,6 +258,17 @@ export default function Products({ content }: { content: SiteContent }) {
                         External checkout
                       </a>
                     )}
+                    {active.downloadUrl && (
+                      <a
+                        href={active.downloadUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        download
+                        className="btn-ghost"
+                      >
+                        Download
+                      </a>
+                    )}
                     <button type="button" className="btn-ghost" onClick={() => setActive(null)}>
                       Close
                     </button>

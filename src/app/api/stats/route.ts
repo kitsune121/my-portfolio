@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createHash } from "crypto";
-import { getStats, recordVisit } from "@/lib/data";
+import { getSession } from "@/lib/auth";
+import { getStats, recordVisit, setStats } from "@/lib/data";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -22,5 +23,16 @@ export async function GET(req: Request) {
     .slice(0, 24);
 
   const stats = recordVisit(visitorKey);
+  return NextResponse.json(stats);
+}
+
+export async function PUT(req: Request) {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await req.json();
+  const stats = setStats(body.visits, body.uniqueVisits);
   return NextResponse.json(stats);
 }

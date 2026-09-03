@@ -156,6 +156,7 @@ export function recordVisitRow(visitorKey: string) {
     store.stats.visits += 1;
     if (!store.visitors.includes(visitorKey)) {
       store.visitors.push(visitorKey);
+      store.stats.unique_visits += 1;
     }
     saveJsonStore(store);
     return;
@@ -172,7 +173,25 @@ export function recordVisitRow(visitorKey: string) {
     db.prepare(
       "INSERT INTO visitors (visitor_key, created_at) VALUES (?, datetime('now'))"
     ).run(visitorKey);
+    db.prepare("UPDATE stats SET unique_visits = unique_visits + 1 WHERE id = 1").run();
   }
+}
+
+export function setStatsRow(stats: { visits: number; unique_visits: number }) {
+  if (isServerlessRuntime()) {
+    const store = getJsonStore();
+    store.stats.visits = stats.visits;
+    store.stats.unique_visits = stats.unique_visits;
+    saveJsonStore(store);
+    return;
+  }
+
+  getSqliteDb()
+    .prepare(
+      `INSERT INTO stats (id, visits, unique_visits) VALUES (1, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET visits = excluded.visits, unique_visits = excluded.unique_visits`
+    )
+    .run(stats.visits, stats.unique_visits);
 }
 
 export function incrementUniqueVisitsRow() {

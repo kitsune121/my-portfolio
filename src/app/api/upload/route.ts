@@ -32,6 +32,13 @@ export async function POST(req: Request) {
     ".pdf",
     ".doc",
     ".docx",
+    ".zip",
+    ".rar",
+    ".7z",
+    ".txt",
+    ".md",
+    ".json",
+    ".csv",
   ]);
   const ext = allowed.has(rawExt) ? rawExt : ".bin";
   const name = `${randomUUID()}${ext}`;

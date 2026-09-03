@@ -93,6 +93,7 @@ export interface Product {
   price: number;
   currency: string;
   buyUrl: string;
+  downloadUrl: string;
   features: string[];
   stock: string;
   featured: boolean;

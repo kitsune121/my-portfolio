@@ -152,7 +152,6 @@ export default function VisitStats({
               <p className="mt-1 text-2xl font-semibold tabular-nums">
                 {unique === null ? "—" : unique.toLocaleString()}
               </p>
-              <p className="mt-0.5 text-[10px] text-[var(--muted)]">Hire requests</p>
             </div>
 
             <motion.div

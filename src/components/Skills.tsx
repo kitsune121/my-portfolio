@@ -1,52 +1,138 @@
 "use client";
 
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import AnimatedSection from "./AnimatedSection";
 import type { SiteContent } from "@/lib/types";
 
-function SkillRow({ name, level, index }: { name: string; level: number; index: number }) {
+function skillInitials(name: string) {
+  const parts = name
+    .replace(/[/&]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
+
+function masteryLabel(level: number) {
+  if (level >= 90) return "Expert";
+  if (level >= 80) return "Advanced";
+  if (level >= 70) return "Proficient";
+  if (level >= 55) return "Working";
+  return "Learning";
+}
+
+function SkillOrb({
+  name,
+  level,
+  index,
+}: {
+  name: string;
+  level: number;
+  index: number;
+}) {
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true });
+  const inView = useInView(ref, { once: true, margin: "-40px" });
+  const size = 112;
+  const stroke = 7;
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const progress = Math.max(0, Math.min(100, level)) / 100;
+  const initials = useMemo(() => skillInitials(name), [name]);
+  const hueShift = (index * 37) % 120;
 
   return (
-    <motion.div
+    <motion.article
       ref={ref}
-      initial={{ opacity: 0, y: 16 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ delay: index * 0.04 }}
-      className="group"
+      initial={{ opacity: 0, y: 28, scale: 0.92 }}
+      animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
+      transition={{
+        type: "spring",
+        stiffness: 280,
+        damping: 22,
+        delay: (index % 8) * 0.05,
+      }}
+      whileHover={{ y: -8, scale: 1.03 }}
+      className="skill-orb"
       data-cursor="hover"
+      style={{ ["--skill-hue" as string]: `${hueShift}deg` }}
     >
-      <div className="mb-2 flex items-end justify-between">
-        <h3 className="font-medium">{name}</h3>
-        <span className="text-sm text-teal-300">{level}%</span>
+      <div className="skill-orb-ring-wrap">
+        <svg
+          className="skill-orb-svg"
+          width={size}
+          height={size}
+          viewBox={`0 0 ${size} ${size}`}
+          aria-hidden
+        >
+          <circle
+            className="skill-orb-track"
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            strokeWidth={stroke}
+            fill="none"
+          />
+          <motion.circle
+            className="skill-orb-progress"
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            strokeWidth={stroke}
+            fill="none"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            initial={{ strokeDashoffset: circumference }}
+            animate={
+              inView
+                ? { strokeDashoffset: circumference * (1 - progress) }
+                : { strokeDashoffset: circumference }
+            }
+            transition={{ duration: 1.15, delay: 0.12 + (index % 8) * 0.04, ease: [0.22, 1, 0.36, 1] }}
+            transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          />
+        </svg>
+        <div className="skill-orb-core">
+          <span className="skill-orb-initials">{initials}</span>
+          <motion.span
+            className="skill-orb-percent"
+            initial={{ opacity: 0 }}
+            animate={inView ? { opacity: 1 } : {}}
+            transition={{ delay: 0.45 + (index % 8) * 0.03 }}
+          >
+            {level}%
+          </motion.span>
+        </div>
+        <span className="skill-orb-glow" aria-hidden />
       </div>
-      <div className="h-[3px] overflow-hidden rounded-full bg-white/10">
-        <motion.span
-          className="block h-full origin-left rounded-full bg-gradient-to-r from-teal-300 via-sky-400 to-violet-400 shadow-[0_0_12px_rgba(94,234,212,0.5)]"
-          initial={{ scaleX: 0 }}
-          animate={inView ? { scaleX: level / 100 } : {}}
-          transition={{ duration: 0.9, delay: 0.1 + index * 0.03, ease: "easeOut" }}
-        />
+
+      <div className="skill-orb-meta">
+        <h3 className="skill-orb-name">{name}</h3>
+        <p className="skill-orb-level">{masteryLabel(level)}</p>
       </div>
-    </motion.div>
+    </motion.article>
   );
 }
 
 export default function Skills({ content }: { content: SiteContent }) {
+  const skills = content.skills || [];
+
   return (
     <section id="skills" className="section section-even">
       <div className="shell">
         <AnimatedSection className="mb-12">
           <p className="section-label">Capabilities</p>
           <h2 className="font-[family-name:var(--font-display)] text-4xl font-semibold md:text-5xl">
-            Skills
+            <span className="aurora-text">Skills</span>
           </h2>
+          <p className="mt-4 max-w-2xl text-[var(--muted)]">
+            A living toolkit — craft, stack, and depth across product engineering.
+          </p>
         </AnimatedSection>
-        <div className="grid gap-8 sm:grid-cols-2">
-          {content.skills.map((skill, i) => (
-            <SkillRow key={skill.id} name={skill.name} level={skill.level} index={i} />
+
+        <div className="skills-constellation">
+          {skills.map((skill, i) => (
+            <SkillOrb key={skill.id} name={skill.name} level={skill.level} index={i} />
           ))}
         </div>
       </div>

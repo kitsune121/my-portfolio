@@ -13,9 +13,9 @@ function msgId() {
 function ThinkingBubble({ name }: { name: string }) {
   return (
     <motion.div
-      initial={{ opacity: 0, x: 28, scale: 0.9 }}
+      initial={{ opacity: 0, x: -28, scale: 0.9 }}
       animate={{ opacity: 1, x: 0, scale: 1 }}
-      exit={{ opacity: 0, x: 12, scale: 0.95 }}
+      exit={{ opacity: 0, x: -12, scale: 0.95 }}
       className="ai-msg-row ai-msg-row--assistant"
     >
       <div className="ai-bubble ai-bubble--thinking">
@@ -52,7 +52,7 @@ function ChatBubble({
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 18, x: isUser ? -24 : 24, scale: 0.92 }}
+      initial={{ opacity: 0, y: 18, x: isUser ? 24 : -24, scale: 0.92 }}
       animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
       transition={{
         type: "spring",

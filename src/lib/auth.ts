@@ -36,18 +36,6 @@ export function getAuth(): AuthData {
     return initial;
   }
 
-  // Upgrade previous seed login to the new default credentials
-  if (row.email.toLowerCase() === "koichisato049@gmail.com") {
-    const { salt, hash } = hashPassword("Luckystar1221!");
-    const next: AuthData = {
-      email: "koichisato049@gmail.com",
-      passwordHash: hash,
-      salt,
-    };
-    saveAuth(next);
-    return next;
-  }
-
   return {
     email: row.email,
     passwordHash: row.password_hash,

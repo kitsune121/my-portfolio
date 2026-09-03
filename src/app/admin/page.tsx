@@ -19,6 +19,7 @@ type Section =
   | "reviews"
   | "hires"
   | "orders"
+  | "stats"
   | "ai"
   | "account";
 
@@ -50,6 +51,7 @@ const NAV_GROUPS: { title: string; items: { id: Section; label: string }[] }[] =
     title: "System",
     items: [
       { id: "visibility", label: "Visibility" },
+      { id: "stats", label: "Visit stats" },
       { id: "ai", label: "AI Assistant" },
       { id: "account", label: "Account" },
     ],
@@ -113,6 +115,7 @@ export default function AdminPage() {
   const [reviews, setReviews] = useState<ClientReview[]>([]);
   const [hires, setHires] = useState<HireRequest[]>([]);
   const [orders, setOrders] = useState<ProductOrder[]>([]);
+  const [statsForm, setStatsForm] = useState({ visits: "0", uniqueVisits: "0" });
   const [aiForm, setAiForm] = useState({
     openaiApiKey: "",
     aiEnabled: true,
@@ -128,15 +131,20 @@ export default function AdminPage() {
   });
 
   async function loadExtras() {
-    const [r, h, o, a] = await Promise.all([
+    const [r, h, o, a, s] = await Promise.all([
       fetch("/api/reviews?all=1").then((x) => x.json()),
       fetch("/api/hire").then((x) => x.json()),
       fetch("/api/orders").then((x) => x.json()),
       fetch("/api/ai").then((x) => x.json()),
+      fetch("/api/stats").then((x) => x.json()),
     ]);
     if (Array.isArray(r)) setReviews(r);
     if (Array.isArray(h)) setHires(h);
     if (Array.isArray(o)) setOrders(o);
+    setStatsForm({
+      visits: String(Number(s.visits) || 0),
+      uniqueVisits: String(Number(s.uniqueVisits) || 0),
+    });
     setAiForm((prev) => ({
       ...prev,
       aiEnabled: a.aiEnabled !== false,
@@ -271,20 +279,68 @@ export default function AdminPage() {
     setAuthed(false);
   }
 
-  async function saveContent(nextContent?: SiteContent) {
-    const payload =
-      nextContent && typeof nextContent === "object" && "about" in nextContent
-        ? nextContent
-        : content;
-    if (!payload) return false;
+  async function persistContent(payload: SiteContent) {
     setMessage("Saving...");
     const res = await fetch("/api/content", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    setMessage(res.ok ? "Resume saved." : "Save failed.");
-    return res.ok;
+    if (!res.ok) {
+      setMessage("Save failed.");
+      return false;
+    }
+    setMessage("Saved to local database.");
+    return true;
+  }
+
+  async function saveContent(nextContent?: SiteContent) {
+    const payload = nextContent ?? content;
+    if (!payload) return false;
+    return persistContent(payload);
+  }
+
+  async function saveStats(e: FormEvent) {
+    e.preventDefault();
+    setMessage("Saving visit stats...");
+    const res = await fetch("/api/stats", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        visits: Number(statsForm.visits) || 0,
+        uniqueVisits: Number(statsForm.uniqueVisits) || 0,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setMessage(data.error || "Failed to save stats");
+      return;
+    }
+    setStatsForm({
+      visits: String(data.visits || 0),
+      uniqueVisits: String(data.uniqueVisits || 0),
+    });
+    setMessage("Visit stats saved to local database.");
+  }
+
+  function patchContent(updater: (prev: SiteContent) => SiteContent, autoSave = false) {
+    setContent((prev) => {
+      if (!prev) return prev;
+      const next = updater(prev);
+      if (autoSave) {
+        queueMicrotask(() => {
+          void (async () => {
+            const ok = await persistContent(next);
+            setMessage(
+              ok
+                ? "Uploaded and saved to local database."
+                : "Uploaded, but save failed — click Save."
+            );
+          })();
+        });
+      }
+      return next;
+    });
   }
 
   async function uploadImage(file: File, apply: (url: string) => void) {
@@ -294,8 +350,7 @@ export default function AdminPage() {
     const res = await fetch("/api/upload", { method: "POST", body: fd });
     const data = await res.json();
     if (res.ok) {
-      apply(data.url);
-      setMessage("Upload complete — click Save resume to publish.");
+      apply(data.url as string);
     } else setMessage(data.error || "Upload failed");
   }
 
@@ -309,22 +364,13 @@ export default function AdminPage() {
       setMessage(data.error || "Upload failed");
       return;
     }
-    setContent((prev) => {
-      if (!prev) return prev;
-      const next = {
+    patchContent(
+      (prev) => ({
         ...prev,
         about: { ...prev.about, resumeUrl: data.url as string },
-      };
-      void (async () => {
-        const ok = await saveContent(next);
-        setMessage(
-          ok
-            ? "Resume uploaded and saved. Download Resume buttons will use this file."
-            : "Uploaded, but save failed — click Save resume."
-        );
-      })();
-      return next;
-    });
+      }),
+      true
+    );
   }
 
   async function uploadManyImages(files: FileList | File[], apply: (urls: string[]) => void) {
@@ -341,10 +387,9 @@ export default function AdminPage() {
         setMessage(data.error || "Upload failed");
         return;
       }
-      urls.push(data.url);
+      urls.push(data.url as string);
     }
     apply(urls);
-    setMessage(`Uploaded ${urls.length} image${urls.length > 1 ? "s" : ""} — click Save resume to publish.`);
   }
 
   function updateProject(
@@ -459,10 +504,19 @@ export default function AdminPage() {
             </div>
           </div>
           <div className="flex gap-2">
+            {isResumeSection && (
+              <button
+                type="button"
+                onClick={() => void saveContent()}
+                className="btn-glow !py-2 !px-4 text-sm"
+              >
+                Save
+              </button>
+            )}
             <Link href="/" className="btn-ghost !py-2 !px-4 text-sm">
               View
             </Link>
-            <button type="button" onClick={logout} className="btn-glow !py-2 !px-4 text-sm">
+            <button type="button" onClick={logout} className="btn-ghost !py-2 !px-4 text-sm">
               Logout
             </button>
           </div>
@@ -606,8 +660,8 @@ export default function AdminPage() {
                   )}
                 </div>
                 <p className="mt-2 text-xs text-[var(--muted)]">
-                  Upload a PDF/DOC — site Download Resume buttons auto-download this file.
-                  Upload saves automatically.
+                  Upload a PDF/DOC — site Download Resume buttons use this file. Upload saves
+                  automatically to <code>public/uploads</code> and the local database.
                 </p>
             </div>
             <div>
@@ -636,17 +690,21 @@ export default function AdminPage() {
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file)
-                      uploadImage(file, (url) =>
-                        setContent({
-                          ...content,
-                          about: { ...content.about, image: url },
-                        })
+                      void uploadImage(file, (url) =>
+                        patchContent(
+                          (prev) => ({
+                            ...prev,
+                            about: { ...prev.about, image: url },
+                          }),
+                          true
+                        )
                       );
+                    e.target.value = "";
                   }}
                 />
               </div>
               <p className="mt-2 text-xs text-[var(--muted)]">
-                Type a path like <code>/images/profile.jpg</code>, paste a URL, or upload a file.
+                Upload saves automatically to the project and live site.
               </p>
             </div>
           </section>
@@ -713,11 +771,15 @@ export default function AdminPage() {
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file)
-                          uploadImage(file, (url) => {
-                            const orbitImages = [...(content.orbitImages || [])];
-                            orbitImages[idx] = { ...orb, image: url };
-                            setContent({ ...content, orbitImages });
-                          });
+                          void uploadImage(file, (url) =>
+                            patchContent((prev) => {
+                              const orbitImages = [...(prev.orbitImages || [])];
+                              if (!orbitImages[idx]) return prev;
+                              orbitImages[idx] = { ...orbitImages[idx], image: url };
+                              return { ...prev, orbitImages };
+                            }, true)
+                          );
+                        e.target.value = "";
                       }}
                     />
                   </div>
@@ -848,11 +910,15 @@ export default function AdminPage() {
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file)
-                          uploadImage(file, (url) => {
-                            const experience = [...content.experience];
-                            experience[idx] = { ...exp, image: url };
-                            setContent({ ...content, experience });
-                          });
+                          void uploadImage(file, (url) =>
+                            patchContent((prev) => {
+                              const experience = [...prev.experience];
+                              if (!experience[idx]) return prev;
+                              experience[idx] = { ...experience[idx], image: url };
+                              return { ...prev, experience };
+                            }, true)
+                          );
+                        e.target.value = "";
                       }}
                     />
                   </div>
@@ -914,11 +980,14 @@ export default function AdminPage() {
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file)
-                        uploadImage(file, (url) => {
-                          const education = [...content.education];
-                          education[idx] = { ...edu, image: url };
-                          setContent({ ...content, education });
-                        });
+                        void uploadImage(file, (url) =>
+                          patchContent((prev) => {
+                            const education = [...prev.education];
+                            if (!education[idx]) return prev;
+                            education[idx] = { ...education[idx], image: url };
+                            return { ...prev, education };
+                          }, true)
+                        );
                       e.target.value = "";
                     }}
                   />
@@ -1031,15 +1100,22 @@ export default function AdminPage() {
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file)
-                          uploadImage(file, (url) => {
-                            const projects = [...content.projects];
-                            projects[idx] = {
-                              ...project,
-                              image: url,
-                              gallery: [url, ...(project.gallery || []).filter((g) => g !== project.image)],
-                            };
-                            setContent({ ...content, projects });
-                          });
+                          void uploadImage(file, (url) =>
+                            patchContent((prev) => {
+                              const projects = [...(prev.projects || [])];
+                              const project = projects[idx];
+                              if (!project) return prev;
+                              projects[idx] = {
+                                ...project,
+                                image: url,
+                                gallery: [
+                                  url,
+                                  ...(project.gallery || []).filter((g) => g !== project.image),
+                                ],
+                              };
+                              return { ...prev, projects };
+                            }, true)
+                          );
                         e.target.value = "";
                       }}
                     />
@@ -1078,23 +1154,29 @@ export default function AdminPage() {
                       onChange={(e) => {
                         const files = e.target.files;
                         if (!files?.length) return;
-                        void uploadManyImages(files, (urls) => {
-                          const projects = [...content.projects];
-                          const merged = Array.from(
-                            new Set([...(project.gallery || [project.image]), ...urls].filter(Boolean))
-                          );
-                          projects[idx] = {
-                            ...project,
-                            gallery: merged,
-                            image: project.image || merged[0],
-                          };
-                          setContent({ ...content, projects });
-                        });
+                        void uploadManyImages(files, (urls) =>
+                          patchContent((prev) => {
+                            const projects = [...(prev.projects || [])];
+                            const project = projects[idx];
+                            if (!project) return prev;
+                            const merged = Array.from(
+                              new Set(
+                                [...(project.gallery || [project.image]), ...urls].filter(Boolean)
+                              )
+                            );
+                            projects[idx] = {
+                              ...project,
+                              gallery: merged,
+                              image: project.image || merged[0],
+                            };
+                            return { ...prev, projects };
+                          }, true)
+                        );
                         e.target.value = "";
                       }}
                     />
                     <p className="mt-1 text-xs text-[var(--muted)]">
-                      Upload multiple images for the animated slide show.
+                      Upload multiple images — saves automatically.
                     </p>
                   </div>
                   <Field
@@ -1201,6 +1283,7 @@ export default function AdminPage() {
                         price: 49,
                         currency: "USD",
                         buyUrl: "#",
+                        downloadUrl: "",
                         features: ["Feature one"],
                         stock: "In stock",
                         featured: false,
@@ -1269,18 +1352,22 @@ export default function AdminPage() {
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file)
-                          uploadImage(file, (url) => {
-                            const products = [...content.products];
-                            products[idx] = {
-                              ...product,
-                              image: url,
-                              gallery: [
-                                url,
-                                ...(product.gallery || []).filter((g) => g !== product.image),
-                              ],
-                            };
-                            setContent({ ...content, products });
-                          });
+                          void uploadImage(file, (url) =>
+                            patchContent((prev) => {
+                              const products = [...(prev.products || [])];
+                              const product = products[idx];
+                              if (!product) return prev;
+                              products[idx] = {
+                                ...product,
+                                image: url,
+                                gallery: [
+                                  url,
+                                  ...(product.gallery || []).filter((g) => g !== product.image),
+                                ],
+                              };
+                              return { ...prev, products };
+                            }, true)
+                          );
                         e.target.value = "";
                       }}
                     />
@@ -1319,23 +1406,29 @@ export default function AdminPage() {
                       onChange={(e) => {
                         const files = e.target.files;
                         if (!files?.length) return;
-                        void uploadManyImages(files, (urls) => {
-                          const products = [...content.products];
-                          const merged = Array.from(
-                            new Set([...(product.gallery || [product.image]), ...urls].filter(Boolean))
-                          );
-                          products[idx] = {
-                            ...product,
-                            gallery: merged,
-                            image: product.image || merged[0],
-                          };
-                          setContent({ ...content, products });
-                        });
+                        void uploadManyImages(files, (urls) =>
+                          patchContent((prev) => {
+                            const products = [...(prev.products || [])];
+                            const product = products[idx];
+                            if (!product) return prev;
+                            const merged = Array.from(
+                              new Set(
+                                [...(product.gallery || [product.image]), ...urls].filter(Boolean)
+                              )
+                            );
+                            products[idx] = {
+                              ...product,
+                              gallery: merged,
+                              image: product.image || merged[0],
+                            };
+                            return { ...prev, products };
+                          }, true)
+                        );
                         e.target.value = "";
                       }}
                     />
                     <p className="mt-1 text-xs text-[var(--muted)]">
-                      Upload multiple images for the animated slide show.
+                      Upload multiple images — saves automatically.
                     </p>
                   </div>
                   <div className="grid gap-2 md:grid-cols-3">
@@ -1376,6 +1469,37 @@ export default function AdminPage() {
                       setContent({ ...content, products });
                     }}
                   />
+                  <Field
+                    label="Download URL / path (shown on sell page)"
+                    value={product.downloadUrl || ""}
+                    onChange={(v) => {
+                      const products = [...content.products];
+                      products[idx] = { ...product, downloadUrl: v };
+                      setContent({ ...content, products });
+                    }}
+                  />
+                  <div className="flex flex-wrap items-center gap-3">
+                    <input
+                      type="file"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file)
+                          void uploadImage(file, (url) =>
+                            patchContent((prev) => {
+                              const products = [...(prev.products || [])];
+                              const current = products[idx];
+                              if (!current) return prev;
+                              products[idx] = { ...current, downloadUrl: url };
+                              return { ...prev, products };
+                            }, true)
+                          );
+                        e.target.value = "";
+                      }}
+                    />
+                    <p className="text-xs text-[var(--muted)]">
+                      Upload a file for download, or paste a path like <code>/uploads/kit.zip</code>
+                    </p>
+                  </div>
                   <Field
                     label="Tags (comma separated)"
                     value={(product.tags || []).join(", ")}
@@ -1552,9 +1676,34 @@ export default function AdminPage() {
               onClick={() => void saveContent()}
               className="btn-glow shadow-lg"
             >
-              Save resume
+              Save
             </button>
           </div>
+        )}
+
+        {section === "stats" && (
+          <section className="panel p-6">
+            <h2 className="mb-2 text-lg font-semibold">Visit stats</h2>
+            <p className="mb-4 text-sm text-[var(--muted)]">
+              Set baseline Visits and Unique counts. Values are stored in the local database and
+              keep growing as people visit the site.
+            </p>
+            <form onSubmit={saveStats} className="grid max-w-md gap-3">
+              <Field
+                label="Visits"
+                value={statsForm.visits}
+                onChange={(v) => setStatsForm((s) => ({ ...s, visits: v }))}
+              />
+              <Field
+                label="Unique"
+                value={statsForm.uniqueVisits}
+                onChange={(v) => setStatsForm((s) => ({ ...s, uniqueVisits: v }))}
+              />
+              <button type="submit" className="btn-glow justify-self-start">
+                Save stats
+              </button>
+            </form>
+          </section>
         )}
 
         {section === "reviews" && (
