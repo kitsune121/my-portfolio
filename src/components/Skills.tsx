@@ -1,18 +1,10 @@
 "use client";
 
 import { motion, useInView } from "framer-motion";
-import { useMemo, useRef } from "react";
+import { useRef, useState } from "react";
 import AnimatedSection from "./AnimatedSection";
+import { resolveSkillIcon, skillIconFallbackLabel } from "@/lib/skill-icon";
 import type { SiteContent } from "@/lib/types";
-
-function skillInitials(name: string) {
-  const parts = name
-    .replace(/[/&]/g, " ")
-    .split(/\s+/)
-    .filter(Boolean);
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[1][0]).toUpperCase();
-}
 
 function masteryLabel(level: number) {
   if (level >= 90) return "Expert";
@@ -25,21 +17,25 @@ function masteryLabel(level: number) {
 function SkillOrb({
   name,
   level,
+  icon,
   index,
 }: {
   name: string;
   level: number;
+  icon: string;
   index: number;
 }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-40px" });
+  const [imgFailed, setImgFailed] = useState(false);
   const size = 112;
   const stroke = 7;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const progress = Math.max(0, Math.min(100, level)) / 100;
-  const initials = useMemo(() => skillInitials(name), [name]);
   const hueShift = (index * 37) % 120;
+  const iconSrc = resolveSkillIcon(icon, name);
+  const showImage = Boolean(iconSrc) && !imgFailed;
 
   return (
     <motion.article
@@ -88,27 +84,35 @@ function SkillOrb({
                 ? { strokeDashoffset: circumference * (1 - progress) }
                 : { strokeDashoffset: circumference }
             }
-            transition={{ duration: 1.15, delay: 0.12 + (index % 8) * 0.04, ease: [0.22, 1, 0.36, 1] }}
+            transition={{
+              duration: 1.15,
+              delay: 0.12 + (index % 8) * 0.04,
+              ease: [0.22, 1, 0.36, 1],
+            }}
             transform={`rotate(-90 ${size / 2} ${size / 2})`}
           />
         </svg>
         <div className="skill-orb-core">
-          <span className="skill-orb-initials">{initials}</span>
-          <motion.span
-            className="skill-orb-percent"
-            initial={{ opacity: 0 }}
-            animate={inView ? { opacity: 1 } : {}}
-            transition={{ delay: 0.45 + (index % 8) * 0.03 }}
-          >
-            {level}%
-          </motion.span>
+          {showImage ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={iconSrc!}
+              alt=""
+              className="skill-orb-icon"
+              onError={() => setImgFailed(true)}
+            />
+          ) : (
+            <span className="skill-orb-initials">{skillIconFallbackLabel(name)}</span>
+          )}
         </div>
         <span className="skill-orb-glow" aria-hidden />
       </div>
 
       <div className="skill-orb-meta">
         <h3 className="skill-orb-name">{name}</h3>
-        <p className="skill-orb-level">{masteryLabel(level)}</p>
+        <p className="skill-orb-level">
+          {masteryLabel(level)} · {level}%
+        </p>
       </div>
     </motion.article>
   );
@@ -132,7 +136,13 @@ export default function Skills({ content }: { content: SiteContent }) {
 
         <div className="skills-constellation">
           {skills.map((skill, i) => (
-            <SkillOrb key={skill.id} name={skill.name} level={skill.level} index={i} />
+            <SkillOrb
+              key={skill.id}
+              name={skill.name}
+              level={skill.level}
+              icon={skill.icon}
+              index={i}
+            />
           ))}
         </div>
       </div>

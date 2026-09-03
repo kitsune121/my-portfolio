@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import type { ClientReview, HireRequest, ProductOrder, SiteContent } from "@/lib/types";
+import { resolveSkillIcon, skillIconFallbackLabel } from "@/lib/skill-icon";
 
 type Section =
   | "basics"
@@ -805,62 +806,159 @@ export default function AdminPage() {
 
         {section === "skills" && (
           <section className="panel p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Skills</h2>
+            <h2 className="mb-2 text-lg font-semibold">Skills</h2>
+            <p className="mb-5 text-sm text-[var(--muted)]">
+              Grid of skill cards — arc progress, center PNG icon, level 0–100. Add sits at the end.
+            </p>
+            <div className="admin-skills-grid">
+              {content.skills.map((skill, idx) => {
+                const level = Math.max(0, Math.min(100, Number(skill.level) || 0));
+                const size = 120;
+                const stroke = 8;
+                const radius = (size - stroke) / 2;
+                const circumference = 2 * Math.PI * radius;
+                const offset = circumference * (1 - level / 100);
+                const iconSrc = resolveSkillIcon(skill.icon, skill.name);
+                const hasUpload =
+                  Boolean(skill.icon) &&
+                  (skill.icon.startsWith("/") || skill.icon.startsWith("http"));
+
+                return (
+                  <div key={skill.id} className="admin-skill-card">
+                    <input
+                      className="admin-input admin-skill-name"
+                      value={skill.name}
+                      placeholder="Skill name"
+                      onChange={(e) => {
+                        const skills = [...content.skills];
+                        skills[idx] = { ...skill, name: e.target.value };
+                        setContent({ ...content, skills });
+                      }}
+                    />
+
+                    <div className="admin-skill-ring">
+                      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden>
+                        <circle
+                          cx={size / 2}
+                          cy={size / 2}
+                          r={radius}
+                          fill="none"
+                          stroke="rgba(255,255,255,0.1)"
+                          strokeWidth={stroke}
+                        />
+                        <circle
+                          cx={size / 2}
+                          cy={size / 2}
+                          r={radius}
+                          fill="none"
+                          stroke={`url(#adminSkillGrad-${skill.id})`}
+                          strokeWidth={stroke}
+                          strokeLinecap="round"
+                          strokeDasharray={circumference}
+                          strokeDashoffset={offset}
+                          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+                        />
+                        <defs>
+                          <linearGradient
+                            id={`adminSkillGrad-${skill.id}`}
+                            x1="0%"
+                            y1="0%"
+                            x2="100%"
+                            y2="100%"
+                          >
+                            <stop offset="0%" stopColor="#5eead4" />
+                            <stop offset="100%" stopColor="#38bdf8" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
+
+                      <label className="admin-skill-icon-hit" title="Upload PNG icon">
+                        {iconSrc ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={iconSrc} alt="" className="admin-skill-icon-img" />
+                        ) : (
+                          <span className="admin-skill-icon-empty">
+                            {skillIconFallbackLabel(skill.name)}
+                          </span>
+                        )}
+                        <input
+                          type="file"
+                          accept=".png,image/png"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            void uploadImage(file, (url) =>
+                              patchContent((prev) => {
+                                const skills = [...prev.skills];
+                                if (!skills[idx]) return prev;
+                                skills[idx] = { ...skills[idx], icon: url };
+                                return { ...prev, skills };
+                              }, true)
+                            );
+                            e.target.value = "";
+                          }}
+                        />
+                      </label>
+                    </div>
+
+                    <p className="text-[10px] text-[var(--muted)]">
+                      {hasUpload ? "Custom PNG" : "Default icon · click to upload PNG"}
+                    </p>
+
+                    <div className="admin-skill-level-row">
+                      <input
+                        className="admin-input admin-skill-level"
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={level}
+                        onChange={(e) => {
+                          const n = Math.max(0, Math.min(100, Number(e.target.value) || 0));
+                          const skills = [...content.skills];
+                          skills[idx] = { ...skill, level: n };
+                          setContent({ ...content, skills });
+                        }}
+                      />
+                      <span className="text-xs text-[var(--muted)]">/ 100</span>
+                    </div>
+
+                    <button
+                      className="admin-skill-remove"
+                      type="button"
+                      onClick={() =>
+                        setContent({
+                          ...content,
+                          skills: content.skills.filter((s) => s.id !== skill.id),
+                        })
+                      }
+                    >
+                      Remove
+                    </button>
+                  </div>
+                );
+              })}
+
               <button
-                className="btn-ghost !py-1.5 !px-3 text-sm"
                 type="button"
-                  onClick={() =>
+                className="admin-skill-add"
+                onClick={() =>
                   setContent({
                     ...content,
                     skills: [
                       ...content.skills,
-                      { id: crypto.randomUUID(), name: "New Skill", icon: "code", level: 80 },
+                      {
+                        id: crypto.randomUUID(),
+                        name: "New Skill",
+                        icon: "",
+                        level: 80,
+                      },
                     ],
                   })
                 }
               >
-                Add
+                <span className="admin-skill-add-plus">+</span>
+                <span>Add skill</span>
               </button>
-            </div>
-            <div className="grid gap-3">
-              {content.skills.map((skill, idx) => (
-                <div key={skill.id} className="grid gap-2 md:grid-cols-[1fr_100px_auto]">
-                  <input
-                    className="admin-input"
-                    value={skill.name}
-                    onChange={(e) => {
-                      const skills = [...content.skills];
-                      skills[idx] = { ...skill, name: e.target.value };
-                      setContent({ ...content, skills });
-                    }}
-                  />
-                  <input
-                    className="admin-input"
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={skill.level}
-                    onChange={(e) => {
-                      const skills = [...content.skills];
-                      skills[idx] = { ...skill, level: Number(e.target.value) };
-                      setContent({ ...content, skills });
-                    }}
-                  />
-                  <button
-                    className="text-sm text-red-300"
-                    type="button"
-                      onClick={() =>
-                      setContent({
-                        ...content,
-                        skills: content.skills.filter((s) => s.id !== skill.id),
-                      })
-                    }
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
             </div>
           </section>
         )}
@@ -1667,18 +1765,6 @@ export default function AdminPage() {
               </div>
             </div>
           </section>
-        )}
-
-        {isResumeSection && (
-          <div className="sticky bottom-4 z-10 mt-6 flex justify-end">
-            <button
-              type="button"
-              onClick={() => void saveContent()}
-              className="btn-glow shadow-lg"
-            >
-              Save
-            </button>
-          </div>
         )}
 
         {section === "stats" && (
