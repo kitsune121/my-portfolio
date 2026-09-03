@@ -13,10 +13,12 @@ import Certificates from "@/components/Certificates";
 import Footer from "@/components/Footer";
 import AIAssistant from "@/components/AIAssistant";
 import { getApprovedReviews, getContent } from "@/lib/data";
+import { beginData } from "@/lib/api-data";
 
 export const dynamic = "force-dynamic";
 
-export default function HomePage() {
+export default async function HomePage() {
+  await beginData();
   const content = getContent();
   const vis = content.sectionVisibility;
   const reviews = getApprovedReviews();

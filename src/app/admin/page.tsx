@@ -281,18 +281,31 @@ export default function AdminPage() {
   }
 
   async function persistContent(payload: SiteContent) {
-    setMessage("Saving...");
-    const res = await fetch("/api/content", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) {
-      setMessage("Save failed.");
+    setMessage("Saving to SQLite...");
+    try {
+      const res = await fetch("/api/content", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        let err = "Save failed.";
+        try {
+          err = String((JSON.parse(text) as { error?: string }).error || err);
+        } catch {
+          /* keep default */
+        }
+        setMessage(err);
+        return false;
+      }
+      setMessage("Saved text/info to SQLite database.");
+      return true;
+    } catch {
+      setMessage("Save failed — network error talking to SQLite API.");
       return false;
     }
-    setMessage("Saved to local database.");
-    return true;
   }
 
   async function saveContent(nextContent?: SiteContent) {
@@ -334,8 +347,8 @@ export default function AdminPage() {
             const ok = await persistContent(next);
             setMessage(
               ok
-                ? "Uploaded and saved to local database."
-                : "Uploaded, but save failed — click Save."
+                ? "File saved in uploads/ and path stored in SQLite."
+                : "File is in uploads/, but SQLite save failed — click Save."
             );
           })();
         });
@@ -344,53 +357,89 @@ export default function AdminPage() {
     });
   }
 
-  async function uploadImage(file: File, apply: (url: string) => void) {
-    setMessage("Uploading...");
+  async function parseJsonSafe(res: Response): Promise<Record<string, unknown>> {
+    const text = await res.text();
+    if (!text) return {};
+    try {
+      return JSON.parse(text) as Record<string, unknown>;
+    } catch {
+      return { error: text.slice(0, 180) || `HTTP ${res.status}` };
+    }
+  }
+
+  async function uploadFile(file: File): Promise<{ url: string; originalName?: string }> {
     const fd = new FormData();
     fd.append("file", file);
-    const res = await fetch("/api/upload", { method: "POST", body: fd });
-    const data = await res.json();
-    if (res.ok) {
-      apply(data.url as string);
-    } else setMessage(data.error || "Upload failed");
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 60_000);
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: fd,
+        credentials: "same-origin",
+        signal: controller.signal,
+      });
+      const data = await parseJsonSafe(res);
+      if (!res.ok) {
+        throw new Error(String(data.error || `Upload failed (${res.status})`));
+      }
+      const url = String(data.url || "");
+      if (!url) throw new Error("Upload succeeded but no file URL was returned");
+      return { url, originalName: data.originalName ? String(data.originalName) : undefined };
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") {
+        throw new Error("Upload timed out — try a smaller file or refresh and log in again");
+      }
+      throw err instanceof Error ? err : new Error("Upload failed");
+    } finally {
+      window.clearTimeout(timer);
+    }
+  }
+
+  async function uploadImage(file: File, apply: (url: string) => void) {
+    setMessage(`Uploading ${file.name || "file"}...`);
+    try {
+      const { url } = await uploadFile(file);
+      setMessage("Upload complete — saving...");
+      apply(url);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Upload failed");
+    }
   }
 
   async function uploadAndSaveResume(file: File) {
-    setMessage("Uploading resume...");
-    const fd = new FormData();
-    fd.append("file", file);
-    const res = await fetch("/api/upload", { method: "POST", body: fd });
-    const data = await res.json();
-    if (!res.ok) {
-      setMessage(data.error || "Upload failed");
-      return;
+    setMessage(`Uploading resume (${file.name})...`);
+    try {
+      const { url } = await uploadFile(file);
+      setMessage("Resume uploaded — saving...");
+      patchContent(
+        (prev) => ({
+          ...prev,
+          about: { ...prev.about, resumeUrl: url },
+        }),
+        true
+      );
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Resume upload failed");
     }
-    patchContent(
-      (prev) => ({
-        ...prev,
-        about: { ...prev.about, resumeUrl: data.url as string },
-      }),
-      true
-    );
   }
 
   async function uploadManyImages(files: FileList | File[], apply: (urls: string[]) => void) {
     const list = Array.from(files);
     if (!list.length) return;
-    setMessage(`Uploading ${list.length} image${list.length > 1 ? "s" : ""}...`);
+    setMessage(`Uploading ${list.length} file${list.length > 1 ? "s" : ""}...`);
     const urls: string[] = [];
-    for (const file of list) {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok) {
-        setMessage(data.error || "Upload failed");
-        return;
+    try {
+      for (let i = 0; i < list.length; i++) {
+        setMessage(`Uploading ${i + 1}/${list.length}: ${list[i].name}...`);
+        const { url } = await uploadFile(list[i]);
+        urls.push(url);
       }
-      urls.push(data.url as string);
+      setMessage(`Uploaded ${urls.length} file${urls.length > 1 ? "s" : ""} — saving...`);
+      apply(urls);
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Upload failed");
     }
-    apply(urls);
   }
 
   function updateProject(

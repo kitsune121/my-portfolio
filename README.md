@@ -30,3 +30,16 @@ Summary · Experience · Education · Skills · Certificates
 
 http://localhost:3000/admin  
 Default: `koichisato049@gmail.com`
+
+## Storage
+
+| Environment | Text / settings | UI images & files |
+|-------------|----------------|-------------------|
+| Local | SQLite `data/portfolio.db` | `public/uploads/` |
+| Netlify | Netlify Blobs (`portfolio-data`) | Netlify Blobs (`portfolio-uploads`), served at `/uploads/...` |
+
+Uploaded images are for the live UI (hero, skills, projects, education, shop, etc.). Paths like `/uploads/….png` are stored in the database and shown in `<img>` tags.
+
+## Deploy (Netlify)
+
+Connect the repo and deploy. Set `ADMIN_SECRET` (and optional `OPENAI_API_KEY`) in Netlify environment variables.

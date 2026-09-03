@@ -1,6 +1,5 @@
 import fs from "fs";
 import path from "path";
-import type Database from "better-sqlite3";
 import { isServerlessRuntime } from "./runtime";
 
 const SEED_DATA_DIR = path.join(process.cwd(), "data");
@@ -16,9 +15,22 @@ function getDbPath() {
   return path.join(getRuntimeDataDir(), "portfolio.db");
 }
 
+export type SqliteStatement = {
+  run: (...params: unknown[]) => unknown;
+  get: (...params: unknown[]) => unknown;
+  all: (...params: unknown[]) => unknown[];
+};
+
+export type SqliteDatabase = {
+  exec: (sql: string) => void;
+  prepare: (sql: string) => SqliteStatement;
+  pragma: (pragma: string) => void;
+  transaction: <T>(fn: (arg: T) => void) => (arg: T) => void;
+};
+
 declare global {
   // eslint-disable-next-line no-var
-  var __portfolioDb: Database.Database | undefined;
+  var __portfolioDb: SqliteDatabase | undefined;
 }
 
 function readJsonFile<T>(file: string, fallback: T): T {
@@ -31,7 +43,83 @@ function readJsonFile<T>(file: string, fallback: T): T {
   }
 }
 
-function createSchema(db: Database.Database) {
+function wrapNodeSqlite(raw: {
+  exec: (sql: string) => void;
+  prepare: (sql: string) => {
+    run: (...params: unknown[]) => unknown;
+    get: (...params: unknown[]) => unknown;
+    all: (...params: unknown[]) => unknown[];
+  };
+}): SqliteDatabase {
+  return {
+    exec: (sql) => raw.exec(sql),
+    prepare: (sql) => {
+      const stmt = raw.prepare(sql);
+      return {
+        run: (...params) => stmt.run(...params),
+        get: (...params) => stmt.get(...params),
+        all: (...params) => stmt.all(...params),
+      };
+    },
+    pragma: (pragma) => {
+      raw.exec(`PRAGMA ${pragma}`);
+    },
+    transaction: <T>(fn: (arg: T) => void) => {
+      return (arg: T) => {
+        raw.exec("BEGIN");
+        try {
+          fn(arg);
+          raw.exec("COMMIT");
+        } catch (err) {
+          try {
+            raw.exec("ROLLBACK");
+          } catch {
+            /* ignore */
+          }
+          throw err;
+        }
+      };
+    },
+  };
+}
+
+function openDatabase(dbPath: string): SqliteDatabase {
+  // Prefer Node built-in SQLite (no native compile / Visual Studio needed).
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { DatabaseSync } = require("node:sqlite") as {
+      DatabaseSync: new (path: string) => {
+        exec: (sql: string) => void;
+        prepare: (sql: string) => {
+          run: (...params: unknown[]) => unknown;
+          get: (...params: unknown[]) => unknown;
+          all: (...params: unknown[]) => unknown[];
+        };
+      };
+    };
+    return wrapNodeSqlite(new DatabaseSync(dbPath));
+  } catch (nodeSqliteErr) {
+    try {
+      // Fallback for older Node installs with a working better-sqlite3 binary.
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const Database = require("better-sqlite3") as new (path: string) => {
+        exec: (sql: string) => void;
+        prepare: (sql: string) => SqliteStatement;
+        pragma: (pragma: string) => void;
+        transaction: <T>(fn: (arg: T) => void) => (arg: T) => void;
+      };
+      return new Database(dbPath) as unknown as SqliteDatabase;
+    } catch (betterErr) {
+      const a = nodeSqliteErr instanceof Error ? nodeSqliteErr.message : String(nodeSqliteErr);
+      const b = betterErr instanceof Error ? betterErr.message : String(betterErr);
+      throw new Error(
+        `SQLite unavailable. node:sqlite: ${a}; better-sqlite3: ${b}. Use Node 22+ or install build tools.`
+      );
+    }
+  }
+}
+
+function createSchema(db: SqliteDatabase) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS kv (
       key TEXT PRIMARY KEY,
@@ -103,7 +191,7 @@ function createSchema(db: Database.Database) {
   `);
 }
 
-function migrateFromJson(db: Database.Database) {
+function migrateFromJson(db: SqliteDatabase) {
   const migrated = db.prepare("SELECT value FROM kv WHERE key = ?").get("migrated_v1") as
     | { value: string }
     | undefined;
@@ -262,17 +350,13 @@ function migrateFromJson(db: Database.Database) {
   ).run("migrated_v1", "1");
 }
 
-export function getSqliteDb(): Database.Database {
+export function getSqliteDb(): SqliteDatabase {
   if (global.__portfolioDb) return global.__portfolioDb;
-
-  // Dynamic require keeps better-sqlite3 out of the serverless bundle path.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const Database = require("better-sqlite3") as new (path: string) => Database.Database;
 
   const runtimeDir = getRuntimeDataDir();
   fs.mkdirSync(runtimeDir, { recursive: true });
 
-  const db = new Database(getDbPath());
+  const db = openDatabase(getDbPath());
   db.pragma(`journal_mode = ${isServerlessRuntime() ? "DELETE" : "WAL"}`);
   db.pragma("foreign_keys = ON");
   createSchema(db);

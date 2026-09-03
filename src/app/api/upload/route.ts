@@ -1,51 +1,85 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
-import fs from "fs";
+import { getSession } from "@/lib/session";
 import path from "path";
 import { randomUUID } from "crypto";
+import { saveMediaFile } from "@/lib/media-store";
+import { ensureReady } from "@/lib/durable";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const MAX_BYTES = 12 * 1024 * 1024;
+const ALLOWED = new Set([
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".webp",
+  ".gif",
+  ".svg",
+  ".pdf",
+  ".doc",
+  ".docx",
+  ".zip",
+  ".rar",
+  ".7z",
+  ".txt",
+  ".md",
+  ".json",
+  ".csv",
+]);
+
+function jsonError(message: string, status: number) {
+  return NextResponse.json({ error: message }, { status });
+}
+
+/**
+ * Files → public/uploads (local) or Netlify Blobs (Netlify).
+ * Text/metadata → SQLite locally / durable JSON store on Netlify (via /api/content).
+ */
 export async function POST(req: Request) {
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    await ensureReady();
+    const session = await getSession();
+    if (!session) {
+      return jsonError("Unauthorized — please log in again", 401);
+    }
+
+    let form: FormData;
+    try {
+      form = await req.formData();
+    } catch {
+      return jsonError("Could not read upload body", 400);
+    }
+
+    const file = form.get("file");
+    if (!file || typeof file === "string") {
+      return jsonError("No file", 400);
+    }
+
+    const upload = file as File;
+    if (!upload.size) {
+      return jsonError("Empty file", 400);
+    }
+    if (upload.size > MAX_BYTES) {
+      return jsonError("File too large (max 12MB)", 400);
+    }
+
+    const rawExt = path.extname(upload.name || "").toLowerCase();
+    const ext = ALLOWED.has(rawExt) ? rawExt : ".bin";
+    const name = `${randomUUID()}${ext}`;
+    const bytes = Buffer.from(await upload.arrayBuffer());
+
+    const saved = await saveMediaFile(name, bytes, upload.name || name);
+
+    return NextResponse.json({
+      ok: true,
+      url: saved.url,
+      originalName: upload.name || name,
+      storage: process.env.NETLIFY ? "netlify-blobs" : "local-uploads",
+    });
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : "Upload failed";
+    console.error("[upload]", detail);
+    return jsonError(detail, 500);
   }
-
-  const form = await req.formData();
-  const file = form.get("file") as File | null;
-  if (!file) {
-    return NextResponse.json({ error: "No file" }, { status: 400 });
-  }
-
-  const maxBytes = 12 * 1024 * 1024;
-  if (file.size > maxBytes) {
-    return NextResponse.json({ error: "File too large (max 12MB)" }, { status: 400 });
-  }
-
-  const rawExt = path.extname(file.name || "").toLowerCase();
-  const allowed = new Set([
-    ".png",
-    ".jpg",
-    ".jpeg",
-    ".webp",
-    ".gif",
-    ".svg",
-    ".pdf",
-    ".doc",
-    ".docx",
-    ".zip",
-    ".rar",
-    ".7z",
-    ".txt",
-    ".md",
-    ".json",
-    ".csv",
-  ]);
-  const ext = allowed.has(rawExt) ? rawExt : ".bin";
-  const name = `${randomUUID()}${ext}`;
-  const dir = path.join(process.cwd(), "public", "uploads");
-  fs.mkdirSync(dir, { recursive: true });
-  const bytes = Buffer.from(await file.arrayBuffer());
-  fs.writeFileSync(path.join(dir, name), bytes);
-
-  return NextResponse.json({ url: `/uploads/${name}`, originalName: file.name });
 }
